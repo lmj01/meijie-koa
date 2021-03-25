@@ -1,0 +1,38 @@
+{
+  "name": "meijie-koa",
+  "version": "1.0.0",
+  "description": "koa backend test",
+  "main": "main.js",
+  "scripts": {
+    "dev": "nodemon main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lmj01/meijie-koa.git"
+  },
+  "keywords": [
+    "koa",
+    "backend"
+  ],
+  "author": "meijie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lmj01/meijie-koa/issues"
+  },
+  "homepage": "https://github.com/lmj01/meijie-koa#readme",
+  "dependencies": {
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-mysql-session": "0.0.2",
+    "koa-router": "^10.0.0",
+    "koa-session-minimal": "^4.0.1",
+    "koa-static": "^5.0.0",
+    "koa2-cors": "^2.0.6",
+    "log4js": "^6.3.0",
+    "md5": "^2.3.0",
+    "moment": "^2.29.1",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.7",
+    "uuid": "^8.3.2"
+  }
+}
