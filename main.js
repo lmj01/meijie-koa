@@ -11,6 +11,7 @@ const config = require('./config/default');
 const app = new Koa();
 
 app.use(require('./src/middlewares/cors'));
+// app.use(require('./src/middlewares/jwt'));
 
 app.use(session({
     key: 'user_sid',
