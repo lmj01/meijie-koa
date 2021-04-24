@@ -5,6 +5,11 @@ module.exports = jwt({
     secret: jwtConfig.secret,
 })
 .unless({
-    path: [/^\/api\/v1\/login/, /^\/api\/v1\/register/]
+    path: [
+        /^\/api\/v1\/login/,
+        /^\/api\/v1\/register/,
+        /^\/swagger/,
+        /^\/favicon./
+    ]
 })
 ;

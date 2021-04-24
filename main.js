@@ -56,7 +56,7 @@ app.use(async (ctx, next) => {
     await next();
     const rt = ctx.response.get('X-Response-Time');
     const body = ctx.request.body;
-    console.log('request', ctx.request, body);
+    // console.log('request', ctx.request, body);
     console.log(`response -- ${ctx.method}, ${ctx.path}, ${ctx.hostname}, ${rt}`);
 });
 app.use(async (ctx, next) => {
@@ -70,14 +70,10 @@ app.use(async (ctx, next) => {
 });
 
 app.use(require('./src/routers/login').routes());
-app.use(require('./src/routers/patient').routes());
-app.use(require('./src/routers/features').routes());
-app.use(require('./src/routers/methods').routes());
 app.use(require('./src/routers/language').routes());
-app.use(require('./src/routers/agencies').routes());
-app.use(require('./src/routers/timebar').routes());
 app.use(require('./src/routers/myfile').routes());
 app.use(require('./src/routers/log').routes());
+app.use(require('./src/middlewares/swagger').routes());
 app.on('error', err=>{
     console.log('server error', err);		
 });

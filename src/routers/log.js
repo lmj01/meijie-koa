@@ -17,6 +17,15 @@ function toV1(src) {
     }
 }
 
+/**
+ * @openapi
+ * /api/v1/log/add:
+ *   post:
+ *     description: add log for debug
+ *     responses:
+ *       200:
+ *         description: Returns a string.
+ */
 router.post('/api/v1/log/add', async ctx => {
     let {message, uri, line, linecolumn, callstack, agent} = ctx.request.body;
     if(JSON.stringify(callstack)==JSON.stringify({})){

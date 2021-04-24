@@ -37,5 +37,9 @@
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "koa2-swagger-ui": "^5.1.0",
+    "swagger-jsdoc": "^6.0.0"
   }
 }

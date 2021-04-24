@@ -16,7 +16,6 @@ router.post('/api/v1/logout', async ctx => {
             }
         });
 });
-
 router.post('/api/v1/login', async ctx => {
     let { email, password } = ctx.request.body;
     await modelUser.find(email)
@@ -77,6 +76,15 @@ router.post('/api/v1/register', async (ctx) => {
         });
 });
 
+/**
+ * @openapi
+ * /api/v1/empty:
+ *   post:
+ *     description: empty action for test request
+ *     responses:
+ *       200:
+ *         description: Returns 'empty action request' .
+ */
 router.post('/api/v1/empty', async ctx=>{
     let {header} = ctx.request;
     console.log('empty authorization -- ', header.authorization)
