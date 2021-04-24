@@ -3,7 +3,8 @@ const logger = require('../middlewares/logger');
 const modelUser = require('../dbmysql/model.user');
 const md5 = require('md5');
 const moment = require('moment');
-const uuidv1 = require('uuid/dist/v1');
+const uuid = require('uuid');   
+const token = require('../middlewares/jwtSimple')
 
 router.post('/api/v1/logout', async ctx => {
     ctx.session = null;
@@ -29,6 +30,7 @@ router.post('/api/v1/login', async ctx => {
                 }
                 ctx.body = {
                     code: 0,
+                    token: token.encode(res[0]['uuid']),
                     message: 'login success!', 
                     id: res[0]['id'], 
                     uuid: res[0]['uuid'],
@@ -47,10 +49,11 @@ router.post('/api/v1/login', async ctx => {
         })  
 });
 
-router.post('/api/v1/register', async ctx => {
+router.post('/api/v1/register', async (ctx) => {
     let { nickname, email, password, language} = ctx.request.body;
+    console.log('-register-', ctx.request.body, uuid.v1())
     // 默认语言设置为汉语
-    if (!language) language = 1;
+    if (!language) language = 'cn';
     await modelUser.find(email)
         .then(async (result) => {
             logger.info(result);
@@ -60,48 +63,35 @@ router.post('/api/v1/register', async ctx => {
                     message: email + ' has registered!'
                 }
             } else {
-                await modelUser.insert([nickname, email, md5(password), uuidv1(), language, 
+                await modelUser.insert([nickname, email, md5(password), uuid.v1(), language, 
                     moment().format('YYYY-MM-DD HH:mm:ss'), moment().format('YYYY-MM-DD HH:mm:ss')])
-                    .then(res=>{                    
+                    .then((res)=>{                    
                         ctx.body = {
                             code: 0,
                             message: 'register succcess!'
                         }
                     });                
             }
-        }).catch(err=>{
+        }).catch((err)=>{
             logger.error('register ', err);
         });
 });
 
-router.post('/api/v1/update/password', async ctx=>{
-    let {uuid, password, newpassword} = ctx.request.body;
-    await modelUser.find_uuid(uuid, md5(password))
+router.post('/api/v1/empty', async ctx=>{
+    let {header} = ctx.request;
+    console.log('empty authorization -- ', header.authorization)
+    let payload = token.decode(header.authorization);
+    await modelUser.findByUuid(payload.uuid)
         .then(async (res)=>{
-            if (res.length == 1) {
-                await modelUser.update_password(uuid, md5(newpassword))
-                    .then(res2=>{
-                        if (res2.affectedRows==1) {
-                            ctx.body = {
-                                code: 0,
-                                message: 'update password success'
-                            }
-                        } else {
-                            ctx.body = {
-                                code: 1,
-                                message: 'update password success'
-                            }
-                        }
-                    })
-            } else {
-                ctx.body = {
-                    code: 1, 
-                    message: 'the user not exist or password not correct!'
-                }
-            }
-        }).catch(err=>{
-            logger.error('update password', err);
-        });
+            console.log('find --', res);
+            ctx.body = {
+                code: 0,
+                message: 'empty action request'
+            }            
+        })
+        .catch((err) => {
+            logger.error('empty action', err);
+        })
 })
 
 router.post('/api/v1/update/language', async ctx=>{

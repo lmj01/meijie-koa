@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "koa backend test",
   "main": "main.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "nodemon main.js"
   },
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/lmj01/meijie-koa#readme",
   "dependencies": {
+    "jwt-simple": "^0.5.6",
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",
     "koa-jwt": "^4.0.1",

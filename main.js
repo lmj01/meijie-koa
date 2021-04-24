@@ -11,7 +11,7 @@ const config = require('./config/default');
 const app = new Koa();
 
 app.use(require('./src/middlewares/cors'));
-// app.use(require('./src/middlewares/jwt'));
+app.use(require('./src/middlewares/jwt'));
 
 app.use(session({
     key: 'user_sid',
@@ -56,8 +56,8 @@ app.use(async (ctx, next) => {
     await next();
     const rt = ctx.response.get('X-Response-Time');
     const body = ctx.request.body;
-    // console.log('request', ctx.request, body);
-    console.log(`${ctx.method}, ${ctx.path}, ${ctx.hostname}, ${rt}`);
+    console.log('request', ctx.request, body);
+    console.log(`response -- ${ctx.method}, ${ctx.path}, ${ctx.hostname}, ${rt}`);
 });
 app.use(async (ctx, next) => {
     const start = Date.now();
@@ -69,7 +69,7 @@ app.use(async (ctx, next) => {
     ctx.set('Access-Control-Max-Age', '86400');
 });
 
-app.use(require('./src/routers/index').routes());
+app.use(require('./src/routers/login').routes());
 app.use(require('./src/routers/patient').routes());
 app.use(require('./src/routers/features').routes());
 app.use(require('./src/routers/methods').routes());
