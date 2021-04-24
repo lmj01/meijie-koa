@@ -1,7 +1,7 @@
-const jwt = require('koa-jwt');
-const jwtConfig = require('../../config/jwt');
+import jwt from 'koa-jwt';
+import jwtConfig from '../../config/jwt';
 
-module.exports = jwt({
+export default jwt({
     secret: jwtConfig.secret,
 })
 .unless({

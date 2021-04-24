@@ -23,6 +23,12 @@ let insert = function(value) {
     return query(sql, value);
 }
 
+let find = function(email) {
+    let sql = `select * from users where email = '${email}'`;
+    return query(sql, []);
+}
+
+
 let findByUuid = function(uuid) {
     let sql = `select * from users where uuid = '${uuid}'`;
     return query(sql, []);
@@ -36,5 +42,6 @@ let update_language = (uuid, language)=>{
 module.exports = {
     insert: insert,
     findByUuid: findByUuid,
+    find: find,
     update_language: update_language,
 }
