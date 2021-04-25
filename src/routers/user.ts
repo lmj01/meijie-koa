@@ -3,9 +3,9 @@ import Koa from 'koa';
 import Mysql from 'Mysql';
 import Router from 'koa-router';
 import md5 from 'md5';
+import logger from '../middlewares/logger';
 // import moment from 'moment';
 // import uuid from 'uuid';
-const logger = require('../middlewares/logger');
 const modelUser = require('../dbmysql/model.user');
 const token = require('../middlewares/jwtSimple')
 
@@ -63,6 +63,7 @@ interface IUser {
 router.post('/api/v1/login', async (ctx: Koa.Context) => {
     console.log('-login-', ctx.request)
     let data:sLogin = ctx.request.body
+    logger.info('-login-', data);
     // let { email, password } :sLogin = ctx.request.body;
     await modelUser.find(data.email)
         .then((res: Array<{ rows: IUser}>)=>{
