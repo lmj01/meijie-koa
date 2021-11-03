@@ -7,6 +7,7 @@ import middleJwt from '../middlewares/jwt';
 import {logInfo} from '../middlewares/logger';
 
 import userController from '../routers/user';
+import pdfController from '../routers/pdf';
 import swaggerController from '../middlewares/swagger';
 
 const app: Koa = new Koa();
@@ -23,7 +24,8 @@ app.use(bodyParser({
 }));
 
 app.use(middleCors);
-app.use(middleJwt);
+//todo 暂时不使用认证环
+// app.use(middleJwt);
 
 
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
@@ -56,7 +58,8 @@ app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
     }
 });
 
-app.use(userController.routes());
+app.use(userController.routes())
+app.use(pdfController.routes())
 app.use(userController.allowedMethods());
 
 app.use(swaggerController.routes());

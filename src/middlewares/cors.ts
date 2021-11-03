@@ -5,6 +5,7 @@ const whiteDomainList = [
     'http://localhost:9877',
     'http://localhost:3001',
     'http://192.168.0.138:4000',
+    'http://192.168.0.138:9000',
 ], whiteApiPathList = [
     '/api/v1/login',
 ];

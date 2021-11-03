@@ -90,7 +90,7 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
                     code: 1,
                     message: 'email or password is not correct!'
                 }
-                logger.info('login fail', data.email, data.password);
+                logger.info('login fail', data.email, data.password, tmp.password, md5(data.password));
             }
         }).catch((err:Object)=>{
             logger.error('login ',err);
@@ -144,6 +144,29 @@ router.post('/api/v1/empty', async (ctx: Koa.Context)=>{
             ctx.body = {
                 code: 0,
                 message: 'empty action request'
+            }            
+        })
+        .catch((err:Object) => {
+            logger.error('empty action', err);
+        })
+})
+
+/**
+ * @openapi
+ * /api/v1/empty:
+ *   post:
+ *     description: empty action for test request
+ *     responses:
+ *       200:
+ *         description: Returns 'empty action request' .
+ */
+router.post('/api/AI_Classification', async (ctx: Koa.Context)=>{
+    let {header} = ctx.request;
+    await Promise.resolve().then(() => {
+            console.log('find --', ctx);
+            ctx.body = {
+                code: 0,
+                message: 'no value'
             }            
         })
         .catch((err:Object) => {

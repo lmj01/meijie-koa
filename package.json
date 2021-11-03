@@ -37,6 +37,7 @@
     "moment": "^2.29.1",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.7",
+    "pdf-lib": "^1.17.0",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.2.32",
     "uuid": "^8.3.2"
