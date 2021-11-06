@@ -8,7 +8,7 @@ const connectionOpts: ConnectionOptions = {
     port: 3306,
     username: 'root',
     password: 'lmjpassword',
-    database: 'koa_orm',
+    database: 'koa_meijie',
     entities: [
         User,
     ],

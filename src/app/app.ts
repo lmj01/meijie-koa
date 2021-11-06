@@ -50,7 +50,7 @@ app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
     try {
         await next();
-    } catch(err) {
+    } catch(err: any) {
         ctx.status = err.statusCode || err.status || HttpStatus.INTERNAL_SERVER_ERROR;
         err.status = ctx.status;
         ctx.body = {err};

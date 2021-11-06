@@ -6,8 +6,10 @@ const whiteDomainList = [
     'http://localhost:3001',
     'http://192.168.0.138:4000',
     'http://192.168.0.138:9000',
-], whiteApiPathList = [
+];
+const whiteApiPathList = [
     '/api/v1/login',
+    '/api/v1/register',
 ];
 
 function isWhiteDomain(origin: string | '') {
@@ -24,17 +26,16 @@ export default cors({
         if (ctx.url === '/test') {
             return false;
         }
-        return '*';
+        // return '*';
         // if (isWhiteDomain(ctx.request.header.origin) || isWhiteApiPath(ctx.url)) {
         //     return ctx.request.header.origin;
         // }
-        // if (isWhiteApiPath(ctx.url)) { // with 
-        //     console.log('--login with no cookie---');
-        //     // return '*'; // 允许来自所有域名请求
-        //     return ;
-        // }
+        if (isWhiteApiPath(ctx.url)) { // with 
+            console.log('--login with no cookie---');
+            return '*'; // 允许来自所有域名请求
+        }
         // return 'http://localhost:3000'; //只允许http://localhost:8080这个域名的请求
-        // return false;
+        return false;
     },
     maxAge: 5, //指定本次预检请求的有效期，单位为秒。
     credentials: true, //是否允许发送Cookie

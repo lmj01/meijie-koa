@@ -4,8 +4,8 @@ import Mysql from 'Mysql';
 import Router from 'koa-router';
 import md5 from 'md5';
 import logger from '../middlewares/logger';
-// import moment from 'moment';
-// import uuid from 'uuid';
+import moment from 'moment';
+import { v1 } from 'uuid';
 const modelUser = require('../dbmysql/model.user');
 const token = require('../middlewares/jwtSimple')
 
@@ -75,7 +75,7 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
                     email: tmp.email,
                     id: tmp.id,
                     uuid: tmp.uuid,
-                }
+                };
                 ctx.body = {
                     code: 0,
                     token: token.encode(tmp.uuid),
@@ -97,33 +97,74 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
         })  
 });
 
-// router.post('/api/v1/register', async (ctx: Koa.Context) => {
-//     let { nickname, email, password, language} = ctx.request.body;
-//     console.log('-register-', ctx.request.body, uuid.v1())
-//     // 默认语言设置为汉语
-//     if (!language) language = 'cn';
-//     await modelUser.find(email)
-//         .then(async (result: Mysql.Query) => {
-//             logger.info(result);
-//             if (result.length >=  1) {
-//                 ctx.body = {
-//                     code: 1, 
-//                     message: email + ' has registered!'
-//                 }
-//             } else {
-//                 await modelUser.insert([nickname, email, md5(password), uuid.v1(), language, 
-//                     moment().format('YYYY-MM-DD HH:mm:ss'), moment().format('YYYY-MM-DD HH:mm:ss')])
-//                     .then((res: Mysql.Query)=>{                    
-//                         ctx.body = {
-//                             code: 0,
-//                             message: 'register succcess!'
-//                         }
-//                     });                
-//             }
-//         }).catch((err:Object)=>{
-//             logger.error('register ', err);
-//         });
-// });
+/**
+ * @openapi
+ * /api/v1/register:
+ *   post:
+ *     tags:
+ *     - user
+ *     description: register a new user
+ *     produces:
+ *     - application/json
+ *     parameters:
+ *     - name: nickname
+ *       description: the nick name
+ *       required: true
+ *       type: string  
+ *     - name: email
+ *       description: the register email
+ *       required: true
+ *       type: string  
+ *     - name: password
+ *       description: the password when you register
+ *       type: string
+ *       required: true
+ *     - name: password2
+ *       description: the confirm password
+ *       type: string
+ *       required: true
+ *     - name: language
+ *       description: the language page
+ *       type: string
+ *       required: true
+ *     responses:
+ *       200:
+ *         description: return is ok or failed message
+ */
+router.post('/api/v1/register', async (ctx: Koa.Context) => {
+    let { nickname, email, password, password2, language} = ctx.request.body;
+    console.log('-register-', ctx.request.body, v1())
+    // 默认语言设置为汉语
+    if (!language) language = 'cn';
+    await modelUser.find(email)
+        .then(async (result: Mysql.Query) => {
+            logger.info(result);
+            if (result.values && result.values.length >=  0) {
+                ctx.body = {
+                    code: 1, 
+                    message: email + ' has registered!'
+                }
+            } else {
+                if (password !== password2) {
+                    ctx.body = {
+                        code: 2, 
+                        message: `两次密码不一致`
+                    }
+                } else {
+                    await modelUser.insert([nickname, email, md5(password), v1(), language, 
+                        moment().format('YYYY-MM-DD HH:mm:ss'), moment().format('YYYY-MM-DD HH:mm:ss')])
+                        .then((res: Mysql.Query)=>{                    
+                            ctx.body = {
+                                code: 0,
+                                message: 'register succcess!'
+                            }
+                        });   
+                }             
+            }
+        }).catch((err:Object)=>{
+            logger.error('register ', err);
+        });
+});
 
 /**
  * @openapi
@@ -153,9 +194,9 @@ router.post('/api/v1/empty', async (ctx: Koa.Context)=>{
 
 /**
  * @openapi
- * /api/v1/empty:
+ * /api/AI_Classification:
  *   post:
- *     description: empty action for test request
+ *     description: classification the images
  *     responses:
  *       200:
  *         description: Returns 'empty action request' .
