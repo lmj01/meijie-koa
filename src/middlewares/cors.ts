@@ -9,6 +9,7 @@ const whiteDomainList = [
 ];
 const whiteApiPathList = [
     '/api/v1/login',
+    '/api/v1/logout',
     '/api/v1/register',
 ];
 

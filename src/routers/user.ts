@@ -16,17 +16,6 @@ interface sLogin {
 
 const router:Router = new Router();
 
-// router.post('/api/v1/logout', async (ctx: Koa.Context) => {
-//     ctx.session = null;
-//     await Promise.resolve(ctx.request.body)
-//         .then((body)=>{
-//             ctx.body = {
-//                 code: 0,
-//                 message: '退出成功',
-//             }
-//         });
-// });
-
 interface IUser {
     id: number, 
     nickname: string,
@@ -95,6 +84,40 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
         }).catch((err:Object)=>{
             logger.error('login ',err);
         })  
+});
+
+
+/**
+ * @openapi
+ * /api/v1/logout:
+ *   post:
+ *     tags:
+ *     - user
+ *     description: exit to the service
+ *     produces:
+ *     - application/json
+ *     parameters:
+ *     - name: email
+ *       description: the register email
+ *       required: true
+ *       type: string  
+ *     - name: password
+ *       description: the password when you register
+ *       type: string
+ *       required: true
+ *     responses:
+ *       200:
+ *         description: return login token.
+ */
+router.post('/api/v1/logout', async (ctx: Koa.Context) => {
+    ctx.session = null;
+    await Promise.resolve(ctx.request.body)
+        .then((body)=>{
+            ctx.body = {
+                code: 0,
+                message: '退出成功',
+            }
+        });
 });
 
 /**
