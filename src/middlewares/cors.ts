@@ -1,11 +1,10 @@
 import Koa from 'koa';
 import cors from 'koa2-cors';
+import logger from '../middlewares/logger';
 
 const whiteDomainList = [
-    'http://localhost:9877',
     'http://localhost:3001',
     'http://192.168.0.138:4000',
-    'http://192.168.0.138:9000',
 ];
 const whiteApiPathList = [
     '/api/v1/login',
@@ -13,8 +12,9 @@ const whiteApiPathList = [
     '/api/v1/register',
 ];
 
-function isWhiteDomain(origin: string | '') {
-    return whiteDomainList.includes(origin);
+function isWhiteDomain(origin: string | undefined) {
+    if (origin) return whiteDomainList.includes(origin);
+    return false;
 }
 
 function isWhiteApiPath(apiPath: string|'') {
@@ -23,14 +23,14 @@ function isWhiteApiPath(apiPath: string|'') {
 
 export default cors({
     origin: (ctx : Koa.Context) => { //设置允许来自指定域名请求
-        console.log('cors--', ctx.url);
+        console.log('-cors-', ctx.url);
         if (ctx.url === '/test') {
             return false;
         }
-        // return '*';
-        // if (isWhiteDomain(ctx.request.header.origin) || isWhiteApiPath(ctx.url)) {
-        //     return ctx.request.header.origin;
-        // }
+        // 检验request的header origin, 同域的放过，或白名单的放过
+        if (isWhiteDomain(ctx.request.header.origin)) {
+            return ctx.request.header.origin || false;
+        }
         if (isWhiteApiPath(ctx.url)) { // with 
             console.log('--login with no cookie---');
             return '*'; // 允许来自所有域名请求
