@@ -1,6 +1,7 @@
 import Koa from 'koa';
 import * as HttpStatus from 'http-status-codes';
-import bodyParser from 'koa-body'
+import bodyParser from 'koa-body';
+import KoaStatic from 'koa-send';
 
 import middleCors from '../middlewares/cors';
 import middleJwt from '../middlewares/jwt';
@@ -70,7 +71,10 @@ app.use(userController.routes());
 // app.use(userController.allowedMethods());
 app.use(pdfController.routes());
 app.use(swaggerController.routes());
-
+app.use(async (ctx) => {
+    console.log('static ', ctx.path);
+    await KoaStatic(ctx, ctx.path, { root: __dirname + '../../../public' });
+})
 app.on('error', console.error);
 
 export default app;
