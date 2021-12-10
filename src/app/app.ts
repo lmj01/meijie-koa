@@ -31,17 +31,18 @@ app.use(middleJwt);
 
 
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
-    console.log('call bk 1');
     await next();
     const rt = ctx.response.get('X-Response-Time');
     // const body = ctx.request.body;
-    console.log(`response -- ${ctx.method}, ${ctx.path}, ${ctx.hostname}, ${rt}`);
+    // console.log(`response -- ${ctx.method}, ${ctx.path}, ${ctx.hostname}, ${rt}`);
 });
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
-    console.log('call bk 2');
     const start = Date.now();
     await next();
-    console.log('-ctx-', ctx.url, ctx.response);
+    if (['/www', '/www/'].includes(ctx.path)) {
+        ctx.url = '/www/index.html';   
+    }
+    console.log('-ctx-', ctx.url);
     // if (['/api/v2/buffer'].includes(ctx.url)) {
     //     // ctx.set('Content-Length', `${9}`);
     //     ctx.set('Content-Type', 'application/octet-stream');
@@ -55,7 +56,6 @@ app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
 });
 
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
-    console.log('call bk 3');
     try {
         await next();
     } catch(err: any) {
@@ -73,6 +73,9 @@ app.use(pdfController.routes());
 app.use(swaggerController.routes());
 app.use(async (ctx) => {
     console.log('static ', ctx.path);
+    if (['/www', '/www/'].includes(ctx.path)) {
+        ctx.response.redirect('/www/index.html');
+    }
     await KoaStatic(ctx, ctx.path, { root: __dirname + '../../../public' });
 })
 app.on('error', console.error);
