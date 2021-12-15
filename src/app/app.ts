@@ -43,16 +43,13 @@ app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
         ctx.url = '/www/index.html';   
     }
     console.log('-ctx-', ctx.url);
-    // if (['/api/v2/buffer'].includes(ctx.url)) {
-    //     // ctx.set('Content-Length', `${9}`);
-    //     ctx.set('Content-Type', 'application/octet-stream');
-    // } else {
-        const ms = Date.now() - start;
-        ctx.set('X-Response-Time', `${ms}ms`);
-        ctx.set('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
-        ctx.set('Access-Control-Allow-Headers', 'x-requested-with');
-        ctx.set('Access-Control-Max-Age', '86400');
-    // }
+    const ms = Date.now() - start;
+    ctx.set('X-Response-Time', `${ms}ms`);
+    ctx.set('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
+    ctx.set('Access-Control-Allow-Headers', 'x-requested-with');
+    ctx.set('Access-Control-Max-Age', '86400');
+    // 暴露一些header，没起作用，下载时需要文件名
+    ctx.set('Access-Control-Expose-Headers', 'Content-Disposition');
 });
 
 app.use(async (ctx: Koa.Context, next: () => Promise<any>) => {
@@ -74,7 +71,9 @@ app.use(swaggerController.routes());
 app.use(async (ctx) => {
     console.log('static ', ctx.path);
     if (['/www', '/www/'].includes(ctx.path)) {
-        ctx.response.redirect('/www/index.html');
+        console.log('redirect to /www/index.html')
+        ctx.response.redirect('/www/index.html#/');
+        // ctx.response.redirect('/www/#/');
     }
     await KoaStatic(ctx, ctx.path, { root: __dirname + '../../../public' });
 })
