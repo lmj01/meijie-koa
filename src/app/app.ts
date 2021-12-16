@@ -68,12 +68,11 @@ app.use(userController.routes());
 // app.use(userController.allowedMethods());
 app.use(pdfController.routes());
 app.use(swaggerController.routes());
+// app.use(notfoundController.routes());
 app.use(async (ctx) => {
     console.log('static ', ctx.path);
     if (['/www', '/www/'].includes(ctx.path)) {
-        console.log('redirect to /www/index.html')
         ctx.response.redirect('/www/index.html#/');
-        // ctx.response.redirect('/www/#/');
     }
     await KoaStatic(ctx, ctx.path, { root: __dirname + '../../../public' });
 })
