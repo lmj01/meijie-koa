@@ -4,11 +4,6 @@ import jwtConfig from '../../config/jwt';
 export default jwt({
     secret: jwtConfig.secret,
 }).unless({
-    path: [
-        /^\/api\/v1\/login/,
-        /^\/api\/v1\/register/,
-        /^\/swagger/,
-        /^\/www/,
-        /^\/favicon./
-    ]
+    // 过滤掉不需要验证的http request
+    path: jwtConfig.whiteUrl,
 });

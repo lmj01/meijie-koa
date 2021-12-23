@@ -59,12 +59,6 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
             const tmp: IUser = <any>res[0] as IUser;
             console.log('-query-', tmp)
             if (tmp && data.email === tmp.email && md5(data.password) === tmp.password) {
-                ctx.session = {
-                    nickname: tmp.nickname,
-                    email: tmp.email,
-                    id: tmp.id,
-                    uuid: tmp.uuid,
-                };
                 ctx.body = {
                     code: 0,
                     token: token.encode(tmp.uuid),
@@ -110,7 +104,6 @@ router.post('/api/v1/login', async (ctx: Koa.Context) => {
  *         description: return login token.
  */
 router.post('/api/v1/logout', async (ctx: Koa.Context) => {
-    ctx.session = null;
     await Promise.resolve(ctx.request.body)
         .then((body)=>{
             ctx.body = {
@@ -237,6 +230,32 @@ router.post('/api/AI_Classification', async (ctx: Koa.Context)=>{
             logger.error('empty action', err);
         })
 })
+
+/**
+ * @openapi
+ * /api/v1/booking:
+ *   post:
+ *     description: booking the contact
+ *     parameters:
+ *     - name: nickname
+ *       description: the nick name
+ *       required: true
+ *       type: string  
+ *     responses:
+ *       200:
+ *         description: return status code.
+ */
+router.post('/api/v1/booking', async (ctx: Koa.Context)=>{
+    logger.info('booking', ctx);
+    await Promise.resolve(1)
+        .then(async (res)=>{
+            console.log('booking return', res);
+            ctx.body = {
+                code: 0,
+                message: 'empty action request'
+            }            
+        })
+});
 
 // router.post('/api/v1/update/language', async (ctx: Koa.Context)=>{
 //     let {uuid, language} = ctx.request.body;

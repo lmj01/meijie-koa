@@ -10,6 +10,7 @@ const whiteApiPathList = [
     '/api/v1/login',
     '/api/v1/logout',
     '/api/v1/register',
+    '/api/v1/booking',
 ];
 
 function isWhiteDomain(origin: string | undefined) {

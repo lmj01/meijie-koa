@@ -3,13 +3,13 @@ import config from '../../config/mysql';
 
 const pool = mysql.createPool(config);
 
-const query = function(sql: string, values: Array<string>) {
+export const query = function(sql: string, values: Array<string>) {
     return new Promise((resolve, reject)=>{
-        pool.getConnection(function(err, conn){
+        pool.getConnection(function(err: mysql.MysqlError, conn: mysql.PoolConnection){
             if (err) {
                 reject(err)
             } else {
-                conn.query(sql, values, (error, rows)=>{
+                conn.query(sql, values, (error: mysql.MysqlError | null, rows: any)=>{
                     if (error) {
                         reject(error)
                     } else {
@@ -21,5 +21,3 @@ const query = function(sql: string, values: Array<string>) {
         })
     })
 }
-
-export default query;
