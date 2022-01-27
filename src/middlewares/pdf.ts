@@ -1,4 +1,8 @@
-import { PDFDocument, StandardFonts, rgb, degrees } from 'pdf-lib'
+import { 
+    PDFDocument, StandardFonts, rgb, degrees, 
+    PDFFont, PDFPage, RGB, PDFImage, PageSizes, 
+} from 'pdf-lib';
+import fontKit from '@pdf-lib/fontkit';
 import { readFileSync, Dir, PathLike } from 'fs';
 import path from 'path';
 
@@ -7,44 +11,169 @@ export interface PdfParameter {
     name: string,
 }
 
+/**
+ * pdf绘制特征
+ * 坐标是原点是左下角，向右是x增长，向上是y的增长
+ */
+const DefFontSize = 12;    
+class PdfBase {
+    font?: PDFFont;
+    doc?: PDFDocument;
+    page?: PDFPage;
+    pageWidth: number;
+    pageHeight: number;
+    color?: RGB;
+    fontSize: number;
+    constructor() {    
+        this.pageWidth = 0;
+        this.pageHeight = 0;    
+        this.fontSize = DefFontSize;
+    }
+    async create() {
+        this.doc = await PDFDocument.create();
+    }
+    async save() {
+        return await this.getDoc().save();
+    }
+    getDoc() {
+        if (!this.doc) throw 'not create document';        
+        return this.doc;
+    }
+    getFont() {
+        if (!this.font) throw 'not create font';        
+        return this.font;
+    }
+    getPage() {
+        if (!this.page) throw 'not create page';        
+        return this.page;
+    }
+    async fontStandard() {
+        this.font = await this.getDoc().embedFont(StandardFonts.TimesRoman);
+    }
+    async fontRegister(fontPath: string, options: any) {
+        const fontBytes = await readFileSync(path.resolve(__dirname, fontPath));
+        this.getDoc().registerFontkit(fontKit);
+        this.font = await this.getDoc().embedFont(fontBytes, options);
+    }
+    async imageRead(imgPath: string, imgType: string) {
+        const imgBytes = await readFileSync(path.resolve(__dirname, imgPath));
+        if (imgType == 'png') return await this.getDoc().embedPng(imgBytes);
+        else if (imgType == 'jpg') return await this.getDoc().embedJpg(imgBytes);
+        throw `not support image type ${imgType}`;
+    }
+    newPage(size:[number,number]) {
+        this.page = this.getDoc().addPage(size);
+        this.pageWidth = size[0];
+        this.pageHeight = size[1];
+    }
+    toY(y: number) {
+        return this.pageHeight - y;
+    }
+    text(idx:number, str: string, x: number, y: number) {
+        const page = this.getDoc().getPage(idx);
+        page.drawText(str, {
+            x: x,
+            y: y,
+            color: this.color,
+            size: this.fontSize,
+            font: this.getFont(),
+        })
+    }
+    lineHeight() {
+        const font = this.getFont();
+        return font.heightAtSize(this.fontSize);
+    }
+    strWidth(str:string) {
+        const font = this.getFont();
+        return font.widthOfTextAtSize(str, this.fontSize);
+    }
+    image(idx:number, img:PDFImage, x: number, y: number, width: number, height: number) {
+        const page = this.getDoc().getPage(idx);
+        page.drawImage(img, {x: x, y: y, width: width, height: -height});
+    }    
+    rect(idx:number, x: number, y: number, width: number, height: number, isFill:boolean) {
+        const page = this.getDoc().getPage(idx);
+        page.drawRectangle({
+            x: x, y: y, width: width, height: -height,
+            color: isFill ? this.color : undefined,
+            borderColor: !isFill ? this.color : undefined,
+        });
+    }
+}
 
 export const simplePdf = async () => {
-    const pdfDoc = await PDFDocument.create()
-    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman)
-    const page = pdfDoc.addPage()
-    const {width, height} = page.getSize()
-    const fontSize = 30
-    page.drawText('Creating PDFs in javascript is awesome!', {
-        x: 50,
-        y: height - 4 * fontSize,
-        size: fontSize,
-        font: timesRomanFont,
-        color: rgb(0, 0.56, 0.71),
-    })
-    return await pdfDoc.save()
+    const pdf = new PdfBase();
+    await pdf.create();
+    await pdf.fontStandard();
+    pdf.newPage(PageSizes.A4);
+    pdf.fontSize = 30;
+    pdf.color = rgb(0, 0.56, 0.71);
+    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 30);
+    return pdf.save();
+}
+
+export const pdfFont = async () => {
+    const pdf = new PdfBase();
+    await pdf.create();
+    await pdf.fontRegister('../assets/NotoSansCJKsc-Regular.otf', {});
+    const imgBiteRamp = await pdf.imageRead('../assets/images/doctor/biteRamp.png', 'png');    
+    const [width, height] = PageSizes.A4;
+    console.log('-a4 size-', width, height)
+    let pageIdx = 0;
+    const fontSize1 = 12;
+    pdf.fontSize = fontSize1;
+    const marginX = 25, marginY = 25;
+    const paddingX = 8, paddingY = 8;
+    const rcA1Width = 428, rcAHeight = pdf.lineHeight() * 2;
+    const rcBWidth = (width - marginX * 2), rcBHeight = 30;
+    const rcCWidth = (width - marginX * 2), rcCHeight = height - marginY * 2 - paddingY * 2 - rcAHeight - rcBHeight;
+    function newPageTemplate() {        
+        pdf.newPage([width, height]);
+        pageIdx = pdf.getDoc().getPageCount() - 1;
+        pdf.color = rgb(0, 1, 0);
+        pdf.rect(pageIdx, marginX, pdf.toY(marginY), rcA1Width, rcAHeight, false);
+        pdf.color = rgb(0, 0.56, 0.71);
+        pdf.rect(pageIdx, marginX, pdf.toY(marginY+paddingY+rcAHeight), rcBWidth, rcBHeight, true);
+        pdf.color = rgb(0, 1, 0);
+        pdf.rect(pageIdx, marginX, pdf.toY(marginY + paddingY * 2 + rcAHeight + rcBHeight), rcCWidth, rcCHeight, false);        
+    }
+    function fillPageTitle() {
+        const doc = pdf.getDoc();
+        const count = doc.getPageCount();
+        pdf.color = rgb(0, 0.56, 0.71);
+        const today = new Date();
+        const strToday = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDay()}`;
+        const strPatient1 = '患者：测试人员', strPatient2 = '#A00084', strDoctor = '医生：杨医生';
+        for (let i = 0; i < count; i++) {
+            pdf.text(i, strPatient1, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8));            
+            pdf.text(i, strPatient2, marginX + paddingX + pdf.strWidth(strPatient1) + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8));            
+            pdf.text(i, strDoctor, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2));            
+            pdf.text(i, strToday, rcA1Width + marginX - paddingX - pdf.strWidth(strToday), pdf.toY(marginY + pdf.lineHeight() * 0.8));
+            let strPage = `${i+1}/${count}`
+            pdf.text(i, strPage, rcA1Width + marginX - paddingX - pdf.strWidth(strPage), pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2));
+        }
+    }
+    newPageTemplate();
+    // 
+    pdf.fontSize = fontSize1;
+    pdf.color = rgb(0, 0.56, 0.71);    
+    pdf.image(pageIdx, imgBiteRamp, 80, pdf.toY(90), imgBiteRamp.width, imgBiteRamp.height);
+    pdf.image(pageIdx, imgBiteRamp, 180, pdf.toY(90), 20, 20);
+    newPageTemplate();
+    fillPageTitle();
+    return pdf.save();
 }
 
 export async function customerPdf(args: PdfParameter) {
-    const pdfDoc = await PDFDocument.create()
-    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman)
-    const page = pdfDoc.addPage()
-    const {width, height} = page.getSize()
-    const fontSize = 10
-    page.drawText('Creating PDFs in javascript is awesome!', {
-        x: 50,
-        y: height - 4 * fontSize,
-        size: fontSize,
-        font: timesRomanFont,
-        color: rgb(0, 0.56, 0.71),
-    });
-    page.drawText(`client provide data, type: ${ args.type }, name:  ${args.name}`, {
-        x: 50,
-        y: height - 5 * fontSize,
-        size: fontSize,
-        font: timesRomanFont,
-        color: rgb(0, 0.56, 0.71),
-    });
-    return await pdfDoc.save()
+    const pdf = new PdfBase();
+    await pdf.create();
+    await pdf.fontStandard();
+    pdf.newPage(PageSizes.A4);
+    pdf.fontSize = 10;
+    pdf.color = rgb(0, 0.56, 0.71); 
+    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 10);
+    pdf.text(0, `client provide data, type: ${ args.type }, name:  ${args.name}`, 50, 5 * 10);
+    return pdf.save();
 }
 
 export async function modifyPdf() {

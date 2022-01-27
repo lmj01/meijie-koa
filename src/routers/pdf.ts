@@ -7,6 +7,7 @@ import {
     pdfCreateAndFill,
     modifyPdf,
     pdfFormFill,
+    pdfFont,
 } from '../middlewares/pdf'
 
 const router:Router = new Router();
@@ -57,6 +58,29 @@ router.post('/api/v2/pdfmodify', async (ctx: Koa.Context) => {
         ctx.body = Buffer.from(buffer);
     }).catch((err:Object)=>{
         logger.error('login ', err)
+    })  
+});
+/**
+ * @openapi
+ * /api/v2/pdfFont:
+ *   post:
+ *     tags:
+ *     - pdf
+ *     description: pdf with font
+ *     produces:
+ *     - application/pdf
+ *     parameters:
+ *     responses:
+ *       200:
+ *         description: status code
+ */
+router.post('/api/v2/pdfFont', async (ctx: Koa.Context) => {
+    await pdfFont().then((buffer) => {
+        ctx.attachment(`font.pdf`);
+        ctx.type = 'application/octet-stream';
+        ctx.body = Buffer.from(buffer);
+    }).catch((err:Object)=>{
+        logger.error('pdf font ', err)
     })  
 });
 /**
