@@ -16,6 +16,10 @@ export interface PdfParameter {
  * 坐标是原点是左下角，向右是x增长，向上是y的增长
  */
 const DefFontSize = 12;    
+interface Point {
+    x: number;
+    y: number;
+}
 class PdfBase {
     font?: PDFFont;
     doc?: PDFDocument;
@@ -87,9 +91,9 @@ class PdfBase {
         const font = this.getFont();
         return font.widthOfTextAtSize(str, this.fontSize);
     }
-    image(idx:number, img:PDFImage, x: number, y: number, width: number, height: number) {
+    image(idx:number, img:PDFImage, x: number, y: number, width: number, height?: number) {
         const page = this.getDoc().getPage(idx);
-        page.drawImage(img, {x: x, y: y, width: width, height: -height});
+        page.drawImage(img, {x: x, y: y, width: width, height: height});
     }    
     rect(idx:number, x: number, y: number, width: number, height: number, isFill:boolean) {
         const page = this.getDoc().getPage(idx);
@@ -98,6 +102,15 @@ class PdfBase {
             color: isFill ? this.color : undefined,
             borderColor: !isFill ? this.color : undefined,
         });
+    }
+    line(idx:number, start: Point, end: Point) {
+        const page = this.getDoc().getPage(idx);
+        page.drawLine({
+            start: start,
+            end: end,
+            color: rgb(0, 0.56, 0.71),
+            opacity: 0.8,
+        })
     }
 }
 
@@ -117,6 +130,7 @@ export const pdfFont = async () => {
     await pdf.create();
     await pdf.fontRegister('../assets/NotoSansCJKsc-Regular.otf', {});
     const imgBiteRamp = await pdf.imageRead('../assets/images/doctor/biteRamp.png', 'png');    
+    const imgTeethIcon4 = await pdf.imageRead('../assets/images/doctor/teethIcon4_en.png', 'png');
     const [width, height] = PageSizes.A4;
     console.log('-a4 size-', width, height)
     let pageIdx = 0;
@@ -124,6 +138,7 @@ export const pdfFont = async () => {
     pdf.fontSize = fontSize1;
     const marginX = 25, marginY = 25;
     const paddingX = 8, paddingY = 8;
+    const marginXimg = 4, marginYimg = 4;
     const rcA1Width = 428, rcAHeight = pdf.lineHeight() * 2;
     const rcBWidth = (width - marginX * 2), rcBHeight = 30;
     const rcCWidth = (width - marginX * 2), rcCHeight = height - marginY * 2 - paddingY * 2 - rcAHeight - rcBHeight;
@@ -153,12 +168,30 @@ export const pdfFont = async () => {
             pdf.text(i, strPage, rcA1Width + marginX - paddingX - pdf.strWidth(strPage), pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2));
         }
     }
+    // 文字描述
+    // newPageTemplate();
+    // 图示描述
     newPageTemplate();
+    let pointBegin: Point = {x: 0, y: 0}, pointEnd: Point = {x: 0, y: 0};
+    let imgX = marginX + marginXimg;
+    let imgY = marginY + rcAHeight + rcBHeight + paddingY * 2 + marginYimg + rcCHeight / 2;
+    let imgWidth = rcCWidth - marginXimg * 2;
+    let imgHeight = imgWidth * imgTeethIcon4.height / imgTeethIcon4.width; //rcCHeight / 2;
+    console.log('-image size-', imgTeethIcon4.width, imgTeethIcon4.height, imgWidth, imgHeight)
+    pointBegin.x = imgX;
+    pointEnd.x = imgX;
+    pointBegin.y = imgY;
+    pdf.image(pageIdx, imgTeethIcon4, imgX, pdf.toY(imgY), imgWidth, imgHeight);
+    imgY = marginY + rcAHeight + rcBHeight + paddingY * 2 - marginYimg + rcCHeight;
+    pointEnd.y = imgY;
+    pdf.image(pageIdx, imgTeethIcon4, imgX, pdf.toY(imgY), imgWidth, imgHeight);
+    pdf.line(pageIdx, pointBegin, pointEnd);
     // 
     pdf.fontSize = fontSize1;
     pdf.color = rgb(0, 0.56, 0.71);    
     pdf.image(pageIdx, imgBiteRamp, 80, pdf.toY(90), imgBiteRamp.width, imgBiteRamp.height);
     pdf.image(pageIdx, imgBiteRamp, 180, pdf.toY(90), 20, 20);
+    // 图示描述
     newPageTemplate();
     fillPageTitle();
     return pdf.save();
