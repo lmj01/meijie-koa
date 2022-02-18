@@ -51,13 +51,16 @@ class PdfBase {
         if (!this.page) throw 'not create page';        
         return this.page;
     }
-    async fontStandard() {
-        this.font = await this.getDoc().embedFont(StandardFonts.TimesRoman);
+    setFont(font: any) {
+        this.font = font;
+    }   
+    async fontStandardTimesRoman() {
+        return await this.getDoc().embedFont(StandardFonts.TimesRoman);
     }
     async fontRegister(fontPath: string, options: any) {
         const fontBytes = await readFileSync(path.resolve(__dirname, fontPath));
         this.getDoc().registerFontkit(fontKit);
-        this.font = await this.getDoc().embedFont(fontBytes, options);
+        return await this.getDoc().embedFont(fontBytes, options);
     }
     async imageRead(imgPath: string, imgType: string) {
         const imgBytes = await readFileSync(path.resolve(__dirname, imgPath));
@@ -73,23 +76,27 @@ class PdfBase {
     toY(y: number) {
         return this.pageHeight - y;
     }
-    text(idx:number, str: string, x: number, y: number) {
+    text(idx:number, str: string, x: number, y: number, font: any) {
         const page = this.getDoc().getPage(idx);
         page.drawText(str, {
             x: x,
             y: y,
             color: this.color,
             size: this.fontSize,
-            font: this.getFont(),
+            font: font || this.getFont(),
         })
     }
     lineHeight() {
         const font = this.getFont();
         return font.heightAtSize(this.fontSize);
     }
-    strWidth(str:string) {
-        const font = this.getFont();
+    strWidth(str:string, font: any) {
+        try {
         return font.widthOfTextAtSize(str, this.fontSize);
+        } catch(err) {
+            console.log(err);
+            return str.length * 2;
+        }
     }
     image(idx:number, img:PDFImage, x: number, y: number, width: number, height?: number) {
         const page = this.getDoc().getPage(idx);
@@ -116,19 +123,22 @@ class PdfBase {
 
 export const simplePdf = async () => {
     const pdf = new PdfBase();
-    await pdf.create();
-    await pdf.fontStandard();
+    await pdf.create();    
+    const font = await pdf.fontStandardTimesRoman();
+    pdf.setFont(font);
     pdf.newPage(PageSizes.A4);
     pdf.fontSize = 30;
     pdf.color = rgb(0, 0.56, 0.71);
-    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 30);
+    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 30, font);
     return pdf.save();
 }
 
 export const pdfFont = async () => {
     const pdf = new PdfBase();
     await pdf.create();
-    await pdf.fontRegister('../assets/NotoSansCJKsc-Regular.otf', {});
+    const fontAscii = await pdf.fontStandardTimesRoman();
+    const fontUnicode = await pdf.fontRegister('../assets/NotoSansCJKsc-Regular.otf', {});
+    pdf.setFont(fontUnicode);
     const imgBiteRamp = await pdf.imageRead('../assets/images/doctor/biteRamp.png', 'png');    
     const imgTeethIcon4 = await pdf.imageRead('../assets/images/doctor/teethIcon4_en.png', 'png');
     const [width, height] = PageSizes.A4;
@@ -160,12 +170,12 @@ export const pdfFont = async () => {
         const strToday = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDay()}`;
         const strPatient1 = '患者：测试人员', strPatient2 = '#A00084', strDoctor = '医生：杨医生';
         for (let i = 0; i < count; i++) {
-            pdf.text(i, strPatient1, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8));            
-            pdf.text(i, strPatient2, marginX + paddingX + pdf.strWidth(strPatient1) + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8));            
-            pdf.text(i, strDoctor, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2));            
-            pdf.text(i, strToday, rcA1Width + marginX - paddingX - pdf.strWidth(strToday), pdf.toY(marginY + pdf.lineHeight() * 0.8));
+            pdf.text(i, strPatient1, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8), fontUnicode);            
+            pdf.text(i, strPatient2, marginX + paddingX + pdf.strWidth(strPatient1, fontUnicode) + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8), fontAscii);            
+            pdf.text(i, strDoctor, marginX + paddingX, pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2), fontUnicode);            
+            pdf.text(i, strToday, rcA1Width + marginX - paddingX - pdf.strWidth(strToday, fontAscii), pdf.toY(marginY + pdf.lineHeight() * 0.8), fontAscii);
             let strPage = `${i+1}/${count}`
-            pdf.text(i, strPage, rcA1Width + marginX - paddingX - pdf.strWidth(strPage), pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2));
+            pdf.text(i, strPage, rcA1Width + marginX - paddingX - pdf.strWidth(strPage, fontAscii), pdf.toY(marginY + pdf.lineHeight() * 0.8 * 2), fontAscii);
         }
     }
     // 文字描述
@@ -200,12 +210,13 @@ export const pdfFont = async () => {
 export async function customerPdf(args: PdfParameter) {
     const pdf = new PdfBase();
     await pdf.create();
-    await pdf.fontStandard();
+    const font = await pdf.fontStandardTimesRoman();
+    pdf.setFont(font);
     pdf.newPage(PageSizes.A4);
     pdf.fontSize = 10;
     pdf.color = rgb(0, 0.56, 0.71); 
-    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 10);
-    pdf.text(0, `client provide data, type: ${ args.type }, name:  ${args.name}`, 50, 5 * 10);
+    pdf.text(0, 'Creating PDFs in javascript is awesome!', 50, 4 * 10, font);
+    pdf.text(0, `client provide data, type: ${ args.type }, name:  ${args.name}`, 50, 5 * 10, font);
     return pdf.save();
 }
 
